@@ -27,7 +27,7 @@ export default {
   name: 'app',
   data () {
     return {
-      api_key: '979aea19483ddbb8ba65e61bdd796d5b',
+      api_key: 'Put_your_api_key_here',
       url_base: 'https://api.openweathermap.org/data/2.5/',
       url_imgbase: 'https://openweathermap.org/img/wn/',
       location: '',
