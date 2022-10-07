@@ -10,7 +10,7 @@
     </div>
     <div class="weather-box">
       <div class="temp">
-        {{Math.round(weather_info.main.temp)}}°C
+        {{getFormatedTemp()}}
         <img :src="url_imgbase + weather_info.weather[0].icon + '@2x.png'"/>
         {{weather_info.weather[0].main}}
       </div>
@@ -31,16 +31,9 @@
         <div>{{getFormatedTime(weather_info.sys.sunset)}}</div>        
       </div>
     </div>
-    <v-layout>
-  <v-flex md6>
-    <v-text-field>Welcome.</v-text-field>
-  </v-flex>
-  <v-flex id="icon-filter">
-    <span>Filter by:</span>
-    <custom-button><v-icon>local_offer</v-icon></custom-button>
-    <custom-button><v-icon>notifications</v-icon></custom-button>
-  </v-flex>
-</v-layout>
+    <div class="set-f-option">
+      °C <custom-button @changeValue="showF = !showF"></custom-button> °F
+    </div>
   </div>
 </main>
 </div>
@@ -60,6 +53,7 @@ export default {
       geo_url:'https://ipgeolocation.abstractapi.com/v1/',
       geo_api_key:'1be9a6884abd4c3ea143b59ca317c6b2',
       location: '',
+      showF: false,
       weather_info: {}
     }
   },
@@ -69,7 +63,7 @@ export default {
         this.fetchWeatherApi(this.location)
       }
     },
-    fetchWeatherApi(query) {      
+    fetchWeatherApi(query) {
         fetch(`${this.url_base}weather?q=${query}&units=metric&APPID=${this.api_key}`)
         .then(res=>{
           return res.json();
@@ -104,6 +98,10 @@ export default {
       var hours = date.getHours();
       var minutes = "0" + date.getMinutes();
       return hours + ':' + minutes.substr(-2);
+    },
+    getFormatedTemp() {
+
+      return this.showF ? Math.round((this.weather_info.main.temp * 9/5) + 32)+'°F' : Math.round(this.weather_info.main.temp)+'°C';
     },
     getCurrentLocation() {
       fetch(`${this.geo_url}?api_key=${this.geo_api_key}`)
@@ -236,5 +234,12 @@ main {
   margin: 30px 0px;
   display: grid;
   grid-template-columns: auto auto;
+}
+
+.set-f-option{
+  padding: 10px 25px;
+  color: #FFF;
+  font-size:28px;
+  text-shadow: 3px 6px rgba(0,0,0,0.25);
 }
 </style>
