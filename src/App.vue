@@ -64,13 +64,18 @@ export default {
       }
     },
     fetchWeatherApi(query) {
+      if (localStorage.getItem(query) != null) {//Check if query result is already stored locally
+        this.weather_info = JSON.parse(localStorage.getItem(query));//Recover query result from local storage instead of make another call to the API
+      } else {
         fetch(`${this.url_base}weather?q=${query}&units=metric&APPID=${this.api_key}`)
         .then(res=>{
           return res.json();
         }).then(this.setResults)
+      }        
     },
     setResults (results) {
       this.weather_info = results;
+      localStorage.setItem(this.location, JSON.stringify(this.weather_info));//Save query result to avoid unnecessary api calls
     },
     getFormatedDate() {
       let d = new Date();
@@ -94,13 +99,12 @@ export default {
       }
     },
     getFormatedTime(unix_timestamp) {
-      var date = new Date(unix_timestamp * 1000);
-      var hours = date.getHours();
-      var minutes = "0" + date.getMinutes();
+      let date = new Date(unix_timestamp * 1000);
+      let hours = date.getHours();
+      let minutes = "0" + date.getMinutes();
       return hours + ':' + minutes.substr(-2);
     },
     getFormatedTemp() {
-
       return this.showF ? Math.round((this.weather_info.main.temp * 9/5) + 32)+'°F' : Math.round(this.weather_info.main.temp)+'°C';
     },
     getCurrentLocation() {
@@ -110,13 +114,16 @@ export default {
         }).then(this.setCurLocation);        
     },
     setCurLocation (currlocation) {
-      this.fetchWeatherApi(currlocation.city+','+currlocation.country_code);
-      //this.location=currlocation.city+','+currlocation.country_code; //Uncomment this to initialize location
+      this.location=currlocation.city+','+currlocation.country_code; //Initializing location
+      this.fetchWeatherApi(this.location);      
     }
   },
   beforeMount(){
     this.getCurrentLocation();
- }
+  },
+  mounted(){
+
+  }
 }
 </script>
 
