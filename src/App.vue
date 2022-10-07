@@ -6,30 +6,59 @@
   </div>
   <div class="weather-wrap" v-if="typeof weather_info.main != 'undefined'">
     <div class="location-box">
+      <div class="location">Current Weather</div>
+    </div>
+    <div class="weather-box">
+      <div class="temp">
+        {{Math.round(weather_info.main.temp)}}°C
+        <img :src="url_imgbase + weather_info.weather[0].icon + '@2x.png'"/>
+        {{weather_info.weather[0].main}}
+      </div>
+    </div>
+    <div class="location-box">
       <div class="location">{{ weather_info.name }}, {{ weather_info.sys.country }}</div>
       <div class="date">{{getFormatedDate()}}</div>
     </div>
-    <div class="weather-box">
-      <div class="temp">{{Math.round(weather_info.main.temp)}}°C</div>
+    <div class="weather-box">      
       <div class="weather">
-        {{weather_info.weather[0].main}}
-        <img :src="url_imgbase + weather_info.weather[0].icon + '@2x.png'"/>
+        <div>Humidity</div>
+        <div>{{weather_info.main.humidity}} %</div>    
+        <div>Wind</div>
+        <div>{{weather_info.wind.speed}} m/s</div>
+        <div>Sunrise</div>
+        <div>{{getFormatedTime(weather_info.sys.sunrise)}}</div>
+        <div>Sunset</div>
+        <div>{{getFormatedTime(weather_info.sys.sunset)}}</div>        
       </div>
     </div>
+    <v-layout>
+  <v-flex md6>
+    <v-text-field>Welcome.</v-text-field>
+  </v-flex>
+  <v-flex id="icon-filter">
+    <span>Filter by:</span>
+    <custom-button><v-icon>local_offer</v-icon></custom-button>
+    <custom-button><v-icon>notifications</v-icon></custom-button>
+  </v-flex>
+</v-layout>
   </div>
 </main>
 </div>
 </template>
 
 <script>
+import CustomButton from './components/ToggleButton.vue'
 
 export default {
   name: 'app',
+  components: { CustomButton },
   data () {
-    return {
-      api_key: 'Put_your_api_key_here',
-      url_base: 'https://api.openweathermap.org/data/2.5/',
-      url_imgbase: 'https://openweathermap.org/img/wn/',
+    return {      
+      url_base: 'https://api.openweathermap.org/data/2.5/', //openweathermap api url
+      api_key: '979aea19483ddbb8ba65e61bdd796d5b', //openweathermap api key
+      url_imgbase: 'https://openweathermap.org/img/wn/', //openweathermap icon location      
+      geo_url:'https://ipgeolocation.abstractapi.com/v1/',
+      geo_api_key:'1be9a6884abd4c3ea143b59ca317c6b2',
       location: '',
       weather_info: {}
     }
@@ -37,11 +66,14 @@ export default {
   methods: {
     fetchWeather(e) {
       if (e.key == "Enter") {
-        fetch(`${this.url_base}weather?q=${this.location}&units=metric&APPID=${this.api_key}`)
+        this.fetchWeatherApi(this.location)
+      }
+    },
+    fetchWeatherApi(query) {      
+        fetch(`${this.url_base}weather?q=${query}&units=metric&APPID=${this.api_key}`)
         .then(res=>{
           return res.json();
-        }).then(this.setResults);
-      }
+        }).then(this.setResults)
     },
     setResults (results) {
       this.weather_info = results;
@@ -66,9 +98,27 @@ export default {
         case 3:  return "rd";
         default: return "th";
       }
+    },
+    getFormatedTime(unix_timestamp) {
+      var date = new Date(unix_timestamp * 1000);
+      var hours = date.getHours();
+      var minutes = "0" + date.getMinutes();
+      return hours + ':' + minutes.substr(-2);
+    },
+    getCurrentLocation() {
+      fetch(`${this.geo_url}?api_key=${this.geo_api_key}`)
+      .then(resp=>{
+          return resp.json();
+        }).then(this.setCurLocation);        
+    },
+    setCurLocation (currlocation) {
+      this.fetchWeatherApi(currlocation.city+','+currlocation.country_code);
+      //this.location=currlocation.city+','+currlocation.country_code; //Uncomment this to initialize location
     }
-
-  }
+  },
+  beforeMount(){
+    this.getCurrentLocation();
+ }
 }
 </script>
 
@@ -127,20 +177,20 @@ main {
   display: block;
   width: 100%;
   padding: 10px;
-  color: #313131;
+  color: #b3b3b3;
   font-size: 20px;
   appearance: none;
   border: none;
   outline: none;
   background: none;
-  background-color: rgba(0,0,0,0.15);
+  background-color: rgba(0,0,0,0.50);
   box-shadow: 0px 0px 8px rgba(0,0,0,0.25);
   border-radius: 15px;
   transition: 0.5s;
 }
 
 .search-box .search-bar:focus {
-  background-color: rgba(0,0,0,0.15);
+  background-color: rgba(0, 0, 0, 0.500);
   box-shadow: 0px 0px 8px rgba(0,0,0,0.75);
 }
 
@@ -168,7 +218,7 @@ main {
   display: inline-block;
   padding: 10px 25px;
   color: #FFF;
-  font-size:100px;
+  font-size:60px;
   font-weight: 1000;
   text-shadow: 3px 6px rgba(0,0,0,0.25);
   background-color: rgba(255,255,255,0.25);
@@ -177,10 +227,14 @@ main {
   margin: 30px 0px;
 }
 
-.weather-box .weather{  
+.weather-box .weather{
+  padding: 10px 25px;
   color: #FFF;
-  font-size:50px;
+  font-size:40px;
   font-weight: 500;
   text-shadow: 3px 6px rgba(0,0,0,0.25);
+  margin: 30px 0px;
+  display: grid;
+  grid-template-columns: auto auto;
 }
 </style>
