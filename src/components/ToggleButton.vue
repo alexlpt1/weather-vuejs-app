@@ -7,7 +7,7 @@
 </template>
 <script>
 export default {
-  //I need to add more methods
+  //I need to add more methods here
  methods: {
    changeValue() {
      this.$emit('changeValue')
